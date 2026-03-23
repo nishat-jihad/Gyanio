@@ -9,7 +9,8 @@ export const I18nProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const loadTranslations = async () => {
       try {
-        const res = await fetch(`/src/locales/${lang}.json`);
+        const res = await fetch(`/locales/${lang}.json`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         setTranslations(data);
         document.documentElement.setAttribute('lang', lang);
@@ -38,3 +39,14 @@ export const I18nProvider = ({ children }: { children: React.ReactNode }) => {
 };
 
 export const useI18n = () => useContext(i18nContext);
+```
+
+---
+
+এখন `src/locales` folder এর **সব JSON files** → `public/locales/` folder এ move করো।
+
+GitHub এ এভাবে করো 👇
+```
+src/locales/en.json → public/locales/en.json
+src/locales/bn.json → public/locales/bn.json
+(বাকিগুলোও একইভাবে)
