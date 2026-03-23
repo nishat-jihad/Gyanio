@@ -1,6 +1,12 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { onAuthStateChanged, User, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
-import { doc, onSnapshot, setDoc, getDoc } from 'firebase/firestore';
+import { 
+  onAuthStateChanged, 
+  User, 
+  GoogleAuthProvider, 
+  signInWithRedirect,
+  getRedirectResult
+} from 'firebase/auth';
+import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 import { auth, db } from './firebase';
 import { UserProfile } from './types';
 
@@ -19,20 +25,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Handle redirect result on app load
+  useEffect(() => {
+    getRedirectResult(auth).catch((error) => {
+      console.error('Redirect result error', error);
+    });
+  }, []);
+
   const signIn = async () => {
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
+      await signInWithRedirect(auth, provider);
     } catch (error) {
       console.error('Sign in failed', error);
     }
   };
+
   useEffect(() => {
     let unsubscribeProfile: (() => void) | null = null;
 
     const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
       setUser(user);
-      
+
       if (unsubscribeProfile) {
         unsubscribeProfile();
         unsubscribeProfile = null;
@@ -44,14 +58,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           if (snapshot.exists()) {
             setProfile(snapshot.data() as UserProfile);
           } else {
-            // Create initial profile
             const initialProfile: UserProfile = {
               uid: user.uid,
               displayName: user.displayName || 'Student',
               email: user.email || '',
               photoURL: user.photoURL || '',
               language: 'en',
-              theme: 'light',
+              theme: 'white',
               stats: {
                 totalStudyHours: 0,
                 tasksCompleted: 0,
@@ -85,7 +98,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, signIn, signOut: () => auth.signOut() }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      profile, 
+      loading, 
+      signIn, 
+      signOut: () => auth.signOut() 
+    }}>
       {children}
     </AuthContext.Provider>
   );
