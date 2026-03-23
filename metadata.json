@@ -1,0 +1,10 @@
+{
+  "name": "Gyanio",
+  "description": "A comprehensive study planning, tracking, gamification, and challenge platform for students preparing for any exam worldwide.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation",
+    "notifications"
+  ]
+}

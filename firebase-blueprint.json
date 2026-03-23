@@ -1,0 +1,177 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Stores user profile information, settings, and aggregate statistics.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "displayName": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "photoURL": { "type": "string" },
+        "language": { "type": "string", "enum": ["en", "bn", "ar", "hi", "ur", "es"] },
+        "theme": { "type": "string", "enum": ["dark", "black"] },
+        "examProfiles": { "type": "array", "items": { "type": "string" } },
+        "currentExamProfileId": { "type": "string" },
+        "stats": {
+          "type": "object",
+          "properties": {
+            "totalStudyHours": { "type": "number" },
+            "tasksCompleted": { "type": "integer" },
+            "challengesWon": { "type": "integer" },
+            "challengesLost": { "type": "integer" },
+            "currentStreak": { "type": "integer" },
+            "bestStreak": { "type": "integer" },
+            "totalPomodoros": { "type": "integer" },
+            "totalBadges": { "type": "integer" }
+          }
+        },
+        "badges": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "displayName", "email"]
+    },
+    "ExamProfile": {
+      "title": "Exam Profile",
+      "description": "Configuration for a specific exam preparation.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "wakeTime": { "type": "string" },
+        "sleepTime": { "type": "string" },
+        "sessionLength": { "type": "integer" },
+        "breakDuration": { "type": "integer" },
+        "subjects": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "name": { "type": "string" },
+              "priority": { "type": "string", "enum": ["low", "medium", "high"] },
+              "color": { "type": "string" }
+            }
+          }
+        },
+        "tasks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "name": { "type": "string" },
+              "startTime": { "type": "string" },
+              "endTime": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "RoutineBlock": {
+      "title": "Routine Block",
+      "description": "A single block in the generated routine.",
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "enum": ["study", "break", "task", "sleep", "free"] },
+        "subjectId": { "type": "string" },
+        "startTime": { "type": "string" },
+        "endTime": { "type": "string" },
+        "duration": { "type": "integer" }
+      }
+    },
+    "TrackerBlock": {
+      "title": "Tracker Block",
+      "description": "Daily status of a routine block.",
+      "type": "object",
+      "properties": {
+        "blockId": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "status": { "type": "string", "enum": ["pending", "done", "skipped"] },
+        "type": { "type": "string" },
+        "subjectId": { "type": "string" },
+        "startTime": { "type": "string" },
+        "endTime": { "type": "string" }
+      }
+    },
+    "Challenge": {
+      "title": "Study Challenge",
+      "description": "A study challenge between users.",
+      "type": "object",
+      "properties": {
+        "challengerId": { "type": "string" },
+        "opponentIds": { "type": "array", "items": { "type": "string" } },
+        "duration": { "type": "integer" },
+        "topics": { "type": "array", "items": { "type": "string" } },
+        "status": { "type": "string", "enum": ["pending", "active", "completed", "declined"] },
+        "code": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "startTime": { "type": "string", "format": "date-time" },
+        "results": { "type": "object" }
+      }
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "In-app notification for the user.",
+      "type": "object",
+      "properties": {
+        "type": { "type": "string" },
+        "title": { "type": "string" },
+        "body": { "type": "string" },
+        "read": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "actionUrl": { "type": "string" }
+      }
+    },
+    "Flashcard": {
+      "title": "Flashcard",
+      "description": "A flashcard for spaced repetition study.",
+      "type": "object",
+      "properties": {
+        "subjectId": { "type": "string" },
+        "question": { "type": "string" },
+        "answer": { "type": "string" },
+        "dueDate": { "type": "string", "format": "date" },
+        "interval": { "type": "integer" },
+        "repetition": { "type": "integer" },
+        "efactor": { "type": "number" }
+      }
+    },
+    "Note": {
+      "title": "Smart Note",
+      "description": "A rich text note.",
+      "type": "object",
+      "properties": {
+        "subjectId": { "type": "string" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "pinned": { "type": "boolean" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "LeaderboardEntry": {
+      "title": "Leaderboard Entry",
+      "description": "User score for a specific category.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "score": { "type": "number" },
+        "category": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    }
+  },
+  "firestore": {
+    "/users/{uid}": { "schema": "User", "description": "User profile and stats" },
+    "/users/{uid}/examProfiles/{profileId}": { "schema": "ExamProfile", "description": "Exam configurations" },
+    "/users/{uid}/tracker/{blockId}": { "schema": "TrackerBlock", "description": "Daily study tracking" },
+    "/users/{uid}/notifications/{notifId}": { "schema": "Notification", "description": "User notifications" },
+    "/users/{uid}/flashcards/{cardId}": { "schema": "Flashcard", "description": "User flashcards" },
+    "/users/{uid}/notes/{noteId}": { "schema": "Note", "description": "User notes" },
+    "/challenges/{challengeId}": { "schema": "Challenge", "description": "Global challenges" },
+    "/leaderboard/{entryId}": { "schema": "LeaderboardEntry", "description": "Global leaderboard scores" }
+  }
+}

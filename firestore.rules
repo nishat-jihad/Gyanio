@@ -1,0 +1,103 @@
+// ===============================================================
+// Assumed Data Model
+// ===============================================================
+//
+// Collection: users
+// Document ID: {uid}
+// Fields:
+//   - displayName: string (required)
+//   - email: string (required)
+//   - photoURL: string
+//   - language: string
+//   - theme: string
+//   - stats: map
+//   - badges: list
+//
+// Collection: users/{uid}/examProfiles
+// Document ID: {profileId}
+// Fields:
+//   - name: string
+//   - date: string
+//   - subjects: list
+//   - tasks: list
+//
+// Collection: users/{uid}/tracker
+// Document ID: {blockId}
+// Fields:
+//   - status: string
+//   - date: string
+//
+// Collection: challenges
+// Document ID: {challengeId}
+// Fields:
+//   - challengerId: string
+//   - opponentIds: list
+//   - status: string
+//   - code: string
+//
+// ===============================================================
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && 
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         (request.auth.token.email == "alamnishat456@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    // User Profile Rules
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isOwner(userId) && hasOnlyAllowedFields(['uid', 'displayName', 'email', 'photoURL', 'language', 'theme', 'stats', 'badges', 'createdAt', 'role']);
+      allow update: if isOwner(userId) || isAdmin();
+      
+      match /examProfiles/{profileId} {
+        allow read, write: if isOwner(userId);
+      }
+      
+      match /tracker/{blockId} {
+        allow read, write: if isOwner(userId);
+      }
+      
+      match /notifications/{notifId} {
+        allow read, write: if isOwner(userId);
+      }
+      
+      match /flashcards/{cardId} {
+        allow read, write: if isOwner(userId);
+      }
+      
+      match /notes/{noteId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    // Global Challenges
+    match /challenges/{challengeId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated(); // Participants can update status
+    }
+
+    // Leaderboard
+    match /leaderboard/{entryId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && request.resource.data.uid == request.auth.uid;
+    }
+  }
+}
