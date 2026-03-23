@@ -1,10 +1,10 @@
 {
-  "projectId": "gen-lang-client-0344290125",
-  "appId": "1:104168017117:web:791d80537bd32316701f34",
-  "apiKey": "AIzaSyDrugdwZ13g14pmpno2iB8ArW0N3bdYFtU",
-  "authDomain": "gen-lang-client-0344290125.firebaseapp.com",
-  "firestoreDatabaseId": "ai-studio-b7cfe9fa-f8d6-437f-a2fc-1a3131cce356",
-  "storageBucket": "gen-lang-client-0344290125.firebasestorage.app",
-  "messagingSenderId": "104168017117",
-  "measurementId": ""
+  "projectId": "gyanio",
+  "appId": "1:718244493815:web:f7fe8e363a989821d496f2",
+  "apiKey": "AIzaSyCJCVoi7BTO_vYRDaatw8Lvd1BmxlbsSFg",
+  "authDomain": "gyanio.firebaseapp.com",
+  "firestoreDatabaseId": "(default)",
+  "storageBucket": "gyanio.firebasestorage.app",
+  "messagingSenderId": "718244493815",
+  "measurementId": "G-VR37TK7YZP"
 }

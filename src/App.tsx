@@ -39,6 +39,7 @@ export default function App() {
                 <Route path="pomodoro" element={<Pomodoro />} />
                 <Route path="weekly" element={<Weekly />} />
                 <Route path="challenge" element={<Challenge />} />
+                <Route path="challenge/:code" element={<Challenge />} />
                 <Route path="leaderboard" element={<Leaderboard />} />
                 <Route path="flashcards" element={<Flashcards />} />
                 <Route path="notes" element={<Notes />} />
