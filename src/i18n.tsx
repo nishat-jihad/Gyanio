@@ -39,14 +39,4 @@ export const I18nProvider = ({ children }: { children: React.ReactNode }) => {
 };
 
 export const useI18n = () => useContext(i18nContext);
-```
 
----
-
-এখন `src/locales` folder এর **সব JSON files** → `public/locales/` folder এ move করো।
-
-GitHub এ এভাবে করো 👇
-```
-src/locales/en.json → public/locales/en.json
-src/locales/bn.json → public/locales/bn.json
-(বাকিগুলোও একইভাবে)
