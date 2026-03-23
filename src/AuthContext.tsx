@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { onAuthStateChanged, User, GoogleAuthProvider, signInWithRedirect, getRedirectResult } from 'firebase/auth';
+import { onAuthStateChanged, User, GoogleAuthProvider, signInWithPopup, getRedirectResult } from 'firebase/auth';
 import { doc, onSnapshot, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from './firebase';
 import { UserProfile } from './types';
@@ -22,7 +22,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signIn = async () => {
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithRedirect(auth, provider);
+      await signInWithPopup(auth, provider);
     } catch (error) {
       console.error('Sign in failed', error);
     }
