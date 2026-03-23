@@ -48,6 +48,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         unsubscribeProfile = onSnapshot(userDoc, (snapshot) => {
           if (snapshot.exists()) {
             setProfile(snapshot.data() as UserProfile);
+            setLoading(false);
           } else {
             // Create initial profile
             const initialProfile: UserProfile = {
@@ -70,9 +71,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               badges: [],
               createdAt: new Date().toISOString(),
             };
-            setDoc(userDoc, initialProfile);
+            setDoc(userDoc, initialProfile).then(() => {
+              // Profile will be set by the next snapshot
+            });
           }
-          setLoading(false);
         }, (error) => {
           console.error('Profile listener failed', error);
           setLoading(false);

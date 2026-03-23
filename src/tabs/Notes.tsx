@@ -75,6 +75,37 @@ export default function Notes() {
     n.content.toLowerCase().includes(search.toLowerCase())
   );
 
+  const downloadNote = () => {
+    if (!activeNote) return;
+    const blob = new Blob([activeNote.content], { type: 'text/plain;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `${activeNote.title || 'note'}.txt`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const shareNote = async () => {
+    if (!activeNote) return;
+    const text = `${activeNote.title}\n\n${activeNote.content}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: activeNote.title,
+          text: activeNote.content,
+        });
+      } catch (err) {
+        console.error('Share failed', err);
+      }
+    } else {
+      await navigator.clipboard.writeText(text);
+      alert('Note copied to clipboard!');
+    }
+  };
+
   if (loading) return <div className="flex items-center justify-center h-full text-text-secondary">Loading...</div>;
 
   return (
@@ -169,8 +200,18 @@ export default function Notes() {
                 >
                   <Pin size={18} fill={activeNote.pinned ? 'currentColor' : 'none'} />
                 </button>
-                <button className="p-2 text-text-secondary hover:text-text-primary transition-all"><Download size={18} /></button>
-                <button className="p-2 text-text-secondary hover:text-text-primary transition-all"><Share2 size={18} /></button>
+                <button 
+                  onClick={downloadNote}
+                  className="p-2 text-text-secondary hover:text-text-primary transition-all"
+                >
+                  <Download size={18} />
+                </button>
+                <button 
+                  onClick={shareNote}
+                  className="p-2 text-text-secondary hover:text-text-primary transition-all"
+                >
+                  <Share2 size={18} />
+                </button>
               </div>
             </header>
             <div className="flex-1 p-8 overflow-y-auto custom-scrollbar">

@@ -75,6 +75,27 @@ export default function Tracker() {
     return Math.round((done / blocks.length) * 100);
   };
 
+  const downloadTracker = () => {
+    if (blocks.length === 0) return;
+    const csvContent = [
+      ['Start Time', 'End Time', 'Type', 'Subject', 'Status'],
+      ...blocks.map(b => {
+        const subject = examProfile?.subjects.find(s => s.id === b.subjectId);
+        return [b.startTime, b.endTime, b.type, b.type === 'study' ? subject?.name || 'Study' : b.type, b.status];
+      })
+    ].map(e => e.join(',')).join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `tracker_${format(new Date(), 'yyyy-MM-dd')}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   if (loading) return <div className="flex items-center justify-center h-full text-text-secondary">Loading...</div>;
 
   return (
@@ -98,7 +119,10 @@ export default function Tracker() {
           >
             {t('tracker.mark_all_done')}
           </button>
-          <button className="p-2 rounded-lg bg-elevated border border-border text-text-secondary hover:text-text-primary transition-all">
+          <button 
+            onClick={downloadTracker}
+            className="p-2 rounded-lg bg-elevated border border-border text-text-secondary hover:text-text-primary transition-all"
+          >
             <Download size={20} />
           </button>
         </div>

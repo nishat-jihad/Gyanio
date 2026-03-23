@@ -25,8 +25,7 @@ export default function Leaderboard() {
 
   useEffect(() => {
     const q = query(
-      collection(db, 'leaderboard'),
-      where('category', '==', category),
+      collection(db, 'leaderboards', timeframe, 'entries'),
       orderBy('score', 'desc'),
       limit(50)
     );
@@ -34,9 +33,12 @@ export default function Leaderboard() {
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as LeaderboardEntry));
       setEntries(data);
       setLoading(false);
+    }, (error) => {
+      console.error('Leaderboard fetch failed', error);
+      setLoading(false);
     });
     return () => unsubscribe();
-  }, [category]);
+  }, [timeframe]);
 
   const filteredEntries = entries.filter(e => 
     e.displayName.toLowerCase().includes(search.toLowerCase())

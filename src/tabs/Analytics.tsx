@@ -14,14 +14,21 @@ export default function Analytics() {
   const [examProfile, setExamProfile] = useState<ExamProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const [timeframe, setTimeframe] = useState('this_week');
+
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const pieRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     if (!profile?.uid) return;
+    
+    let startDate = subDays(new Date(), 30);
+    if (timeframe === 'today') startDate = new Date();
+    if (timeframe === 'this_week') startDate = subDays(new Date(), 7);
+
     const q = query(
       collection(db, 'users', profile.uid, 'tracker'),
-      where('date', '>=', format(subDays(new Date(), 30), 'yyyy-MM-dd'))
+      where('date', '>=', format(startDate, 'yyyy-MM-dd'))
     );
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as TrackerBlock));
@@ -162,8 +169,9 @@ export default function Analytics() {
           {['all_time', 'this_week', 'today'].map((tf) => (
             <button
               key={tf}
+              onClick={() => setTimeframe(tf)}
               className={`px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${
-                tf === 'this_week' ? 'bg-primary text-white' : 'text-text-secondary hover:text-text-primary'
+                timeframe === tf ? 'bg-primary text-white' : 'text-text-secondary hover:text-text-primary'
               }`}
             >
               {t(`leaderboard.${tf}`)}
@@ -211,18 +219,24 @@ export default function Analytics() {
             <h2 className="font-semibold">{t('analytics.productivity_heatmap')}</h2>
           </div>
           <div className="flex flex-wrap gap-1.5">
-            {Array.from({ length: 90 }).map((_, i) => (
-              <div 
-                key={i} 
-                className={`w-3.5 h-3.5 rounded-sm ${
-                  i % 7 === 0 ? 'bg-primary' : 
-                  i % 5 === 0 ? 'bg-primary/60' :
-                  i % 3 === 0 ? 'bg-primary/30' :
-                  'bg-elevated'
-                }`}
-                title={`Day ${i}`}
-              />
-            ))}
+            {Array.from({ length: 90 }).map((_, i) => {
+              const date = subDays(new Date(), 89 - i);
+              const dayBlocks = blocks.filter(b => b.date === format(date, 'yyyy-MM-dd') && b.status === 'done');
+              const intensity = Math.min(dayBlocks.length, 4);
+              return (
+                <div 
+                  key={i} 
+                  className={`w-3.5 h-3.5 rounded-sm transition-colors ${
+                    intensity === 0 ? 'bg-elevated' :
+                    intensity === 1 ? 'bg-primary/30' :
+                    intensity === 2 ? 'bg-primary/60' :
+                    intensity === 3 ? 'bg-primary/80' :
+                    'bg-primary'
+                  }`}
+                  title={`${format(date, 'MMM do')}: ${dayBlocks.length} blocks`}
+                />
+              );
+            })}
           </div>
         </section>
 

@@ -5,7 +5,7 @@ import { Flame, Download, CheckCircle, Clock, Calendar } from 'lucide-react';
 import { collection, query, where, onSnapshot, getDocs, doc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { TrackerBlock, ExamProfile } from '../types';
-import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay } from 'date-fns';
+import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, subDays } from 'date-fns';
 
 export default function Weekly() {
   const { profile } = useAuth();
@@ -51,6 +51,23 @@ export default function Weekly() {
     return Math.round((done / dayBlocks.length) * 100);
   };
 
+  const exportWeek = () => {
+    if (weeklyBlocks.length === 0) return;
+    const csvContent = [
+      ['Date', 'Start Time', 'End Time', 'Type', 'Subject', 'Status'],
+      ...weeklyBlocks.map(b => {
+        const subject = examProfile?.subjects.find(s => s.id === b.subjectId);
+        return [b.date, b.startTime, b.endTime, b.type, b.type === 'study' ? subject?.name || 'Study' : b.type, b.status];
+      })
+    ].map(e => e.join(',')).join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `weekly_report_${format(start, 'yyyy-MM-dd')}.csv`;
+    link.click();
+  };
+
   if (loading) return <div className="flex items-center justify-center h-full text-text-secondary">Loading...</div>;
 
   return (
@@ -62,7 +79,10 @@ export default function Weekly() {
             {format(start, 'MMM do')} - {format(end, 'MMM do, yyyy')}
           </p>
         </div>
-        <button className="flex items-center gap-2 px-6 py-2 bg-elevated border border-border rounded-xl font-semibold hover:bg-primary/10 hover:border-primary/50 transition-all">
+        <button 
+          onClick={exportWeek}
+          className="flex items-center gap-2 px-6 py-2 bg-elevated border border-border rounded-xl font-semibold hover:bg-primary/10 hover:border-primary/50 transition-all"
+        >
           <Download size={18} />
           {t('weekly.export_week')}
         </button>
@@ -126,17 +146,22 @@ export default function Weekly() {
             </div>
             
             <div className="grid grid-cols-7 gap-2">
-              {/* Simple 30-day streak placeholder */}
-              {Array.from({ length: 28 }).map((_, i) => (
-                <div 
-                  key={i} 
-                  className={`aspect-square rounded-md border flex items-center justify-center text-[10px] font-bold ${
-                    i < 12 ? 'bg-orange-500 border-orange-500 text-white shadow-lg shadow-orange-500/20' : 'bg-elevated border-border text-text-secondary'
-                  }`}
-                >
-                  {i + 1}
-                </div>
-              ))}
+              {Array.from({ length: 28 }).map((_, i) => {
+                const date = subDays(new Date(), 27 - i);
+                const dayBlocks = weeklyBlocks.filter(b => b.date === format(date, 'yyyy-MM-dd'));
+                const hasActivity = dayBlocks.some(b => b.status === 'done');
+                return (
+                  <div 
+                    key={i} 
+                    className={`aspect-square rounded-md border flex items-center justify-center text-[10px] font-bold transition-all ${
+                      hasActivity ? 'bg-orange-500 border-orange-500 text-white shadow-lg shadow-orange-500/20' : 'bg-elevated border-border text-text-secondary'
+                    }`}
+                    title={format(date, 'MMM do')}
+                  >
+                    {format(date, 'd')}
+                  </div>
+                );
+              })}
             </div>
 
             <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border">
@@ -159,11 +184,18 @@ export default function Weekly() {
             
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">12 / 40 {t('common.hours')}</span>
-                <span className="text-sm font-bold text-primary">30%</span>
+                <span className="text-sm font-medium">
+                  {Math.round(weeklyBlocks.filter(b => b.status === 'done').length)} / 40 {t('common.hours')}
+                </span>
+                <span className="text-sm font-bold text-primary">
+                  {Math.round((weeklyBlocks.filter(b => b.status === 'done').length / 40) * 100)}%
+                </span>
               </div>
               <div className="h-2 w-full bg-elevated rounded-full overflow-hidden">
-                <div className="h-full bg-primary w-[30%]" />
+                <div 
+                  className="h-full bg-primary transition-all duration-500" 
+                  style={{ width: `${Math.min((weeklyBlocks.filter(b => b.status === 'done').length / 40) * 100, 100)}%` }}
+                />
               </div>
               <button className="w-full py-2 bg-elevated border border-border rounded-xl text-xs font-bold uppercase tracking-widest hover:border-primary/50 transition-all">
                 {t('weekly.log_hours')}

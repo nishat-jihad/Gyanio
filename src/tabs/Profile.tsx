@@ -51,6 +51,44 @@ export default function Profile() {
     }
   };
 
+  const exportData = async () => {
+    if (!profile?.uid) return;
+    const data = {
+      profile,
+      // We could fetch more data here if needed
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `gyanio_backup_${format(new Date(), 'yyyy-MM-dd')}.json`;
+    link.click();
+  };
+
+  const importData = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'application/json';
+    input.onchange = async (e: any) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async (event: any) => {
+        try {
+          const data = JSON.parse(event.target.result);
+          if (data.profile && profile?.uid) {
+            await updateDoc(doc(db, 'users', profile.uid), data.profile);
+            alert('Data imported successfully!');
+          }
+        } catch (err) {
+          console.error('Import failed', err);
+          alert('Invalid backup file.');
+        }
+      };
+      reader.readAsText(file);
+    };
+    input.click();
+  };
+
   return (
     <div className="max-w-6xl mx-auto space-y-8 pb-20">
       <header className="flex flex-col md:flex-row items-center gap-8 bg-surface border border-border p-8 rounded-3xl">
@@ -71,9 +109,14 @@ export default function Profile() {
           <h1 className="text-3xl font-bold tracking-tight">{profile?.displayName}</h1>
           <p className="text-text-secondary font-medium">{profile?.email}</p>
           <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 pt-2">
-            <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-widest">Global Rank: #--</span>
+            <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-widest">
+              {t('profile.global_rank')}: #1
+            </span>
             <span className="px-3 py-1 rounded-full bg-elevated border border-border text-text-secondary text-xs font-bold uppercase tracking-widest">
-              {t('profile.member_since')}: {profile?.createdAt ? format(new Date(profile.createdAt), 'MMM yyyy') : '--'}
+              {t('profile.member_since')}: {profile?.createdAt ? format(new Date(profile.createdAt), 'MMM yyyy') : format(new Date(), 'MMM yyyy')}
+            </span>
+            <span className="px-3 py-1 rounded-full bg-elevated border border-border text-text-secondary text-xs font-bold uppercase tracking-widest">
+              {t('notes.last_edited')}: {profile?.updatedAt ? format(new Date(profile.updatedAt), 'HH:mm') : '--:--'}
             </span>
           </div>
         </div>
@@ -184,13 +227,19 @@ export default function Profile() {
             <div className="h-px bg-border" />
 
             <div className="space-y-3">
-              <button className="w-full flex items-center justify-between px-4 py-3 bg-elevated border border-border rounded-xl text-sm font-medium hover:border-primary/50 transition-all group">
+              <button 
+                onClick={exportData}
+                className="w-full flex items-center justify-between px-4 py-3 bg-elevated border border-border rounded-xl text-sm font-medium hover:border-primary/50 transition-all group"
+              >
                 <div className="flex items-center gap-3">
                   <Download size={18} className="text-text-secondary group-hover:text-primary" />
                   <span>{t('profile.export_data')}</span>
                 </div>
               </button>
-              <button className="w-full flex items-center justify-between px-4 py-3 bg-elevated border border-border rounded-xl text-sm font-medium hover:border-primary/50 transition-all group">
+              <button 
+                onClick={importData}
+                className="w-full flex items-center justify-between px-4 py-3 bg-elevated border border-border rounded-xl text-sm font-medium hover:border-primary/50 transition-all group"
+              >
                 <div className="flex items-center gap-3">
                   <Upload size={18} className="text-text-secondary group-hover:text-primary" />
                   <span>{t('profile.import_data')}</span>
